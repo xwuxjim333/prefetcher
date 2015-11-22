@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
             printf("\n");
         }
         printf("\n");
-        sse_transpose(testin, testout, 4, 4);
+        transpose(testin, testout, 4, 4);
         for (int y = 0; y < 4; y++) {
             for (int x = 0; x < 4; x++)
                 printf(" %2d", testout[y * 4 + x]);
@@ -60,9 +60,7 @@ int main(int argc, char *argv[])
     {
         struct timespec start, end;
         int *src  = (int *) malloc(sizeof(int) * TEST_W * TEST_H);
-        int *out0 = (int *) malloc(sizeof(int) * TEST_W * TEST_H);
-        int *out1 = (int *) malloc(sizeof(int) * TEST_W * TEST_H);
-        int *out2 = (int *) malloc(sizeof(int) * TEST_W * TEST_H);
+        int *out = (int *) malloc(sizeof(int) * TEST_W * TEST_H);
 
         srand(time(NULL));
         for (int y = 0; y < TEST_H; y++)
@@ -70,24 +68,23 @@ int main(int argc, char *argv[])
                 *(src + y * TEST_W + x) = rand();
 
         clock_gettime(CLOCK_REALTIME, &start);
-        sse_prefetch_transpose(src, out0, TEST_W, TEST_H);
+        transpose(src, out, TEST_W, TEST_H);
         clock_gettime(CLOCK_REALTIME, &end);
+
+#if defined(sse_prefetch_transpose)
         printf("sse prefetch: \t %ld us\n", diff_in_us(start, end));
+#endif
 
-        clock_gettime(CLOCK_REALTIME, &start);
-        sse_transpose(src, out1, TEST_W, TEST_H);
-        clock_gettime(CLOCK_REALTIME, &end);
+#if defined(sse_transpose)
         printf("sse: \t\t %ld us\n", diff_in_us(start, end));
+#endif
 
-        clock_gettime(CLOCK_REALTIME, &start);
-        naive_transpose(src, out2, TEST_W, TEST_H);
-        clock_gettime(CLOCK_REALTIME, &end);
+#if defined(naive_transpose)
         printf("naive: \t\t %ld us\n", diff_in_us(start, end));
+#endif
 
         free(src);
-        free(out0);
-        free(out1);
-        free(out2);
+        free(out);
     }
 
     return 0;
